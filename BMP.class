@@ -1,0 +1,95 @@
+package code;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class BMP {
+    byte[] bytes;
+
+    public BMP() {
+    }
+
+    public int[][] readBMP(String var1) {
+        byte[] var2 = new byte[54];
+        int[][] var3 = (int[][])null;
+
+        try {
+            FileInputStream var4 = new FileInputStream(new File(var1));
+            var4.read(var2, 0, var2.length);
+            int var5 = ((var2[21] & 255) << 24) + ((var2[20] & 255) << 16) + ((var2[19] & 255) << 8) + (var2[18] & 255);
+            int var6 = ((var2[25] & 255) << 24) + ((var2[24] & 255) << 16) + ((var2[23] & 255) << 8) + (var2[22] & 255);
+            var3 = new int[var6][var5];
+
+            for(int var7 = 0; var7 < var6; ++var7) {
+                for(int var8 = 0; var8 < var5; ++var8) {
+                    var4.read(var2, 0, 3);
+                    var3[var7][var8] = ((var2[2] & 255) << 16) + ((var2[1] & 255) << 8) + (var2[0] & 255);
+                }
+            }
+
+            return var3;
+        } catch (IOException var9) {
+            throw new IllegalStateException(var9);
+        }
+    }
+
+    public void saveBMP(String var1, int[][] var2) {
+        try {
+            FileOutputStream var3 = new FileOutputStream(new File(var1));
+            this.bytes = new byte[54 + 3 * var2.length * var2[0].length];
+            this.saveFileHeader();
+            this.saveInfoHeader(var2.length, var2[0].length);
+            this.saveBitmapData(var2);
+            var3.write(this.bytes);
+            var3.close();
+        } catch (IOException var4) {
+            throw new IllegalStateException(var4);
+        }
+    }
+
+    private void saveFileHeader() {
+        this.bytes[0] = 66;
+        this.bytes[1] = 77;
+        this.bytes[5] = (byte)this.bytes.length;
+        this.bytes[4] = (byte)(this.bytes.length >> 8);
+        this.bytes[3] = (byte)(this.bytes.length >> 16);
+        this.bytes[2] = (byte)(this.bytes.length >> 24);
+        this.bytes[10] = 54;
+    }
+
+    private void saveInfoHeader(int var1, int var2) {
+        this.bytes[14] = 40;
+        this.bytes[18] = (byte)var2;
+        this.bytes[19] = (byte)(var2 >> 8);
+        this.bytes[20] = (byte)(var2 >> 16);
+        this.bytes[21] = (byte)(var2 >> 24);
+        this.bytes[22] = (byte)var1;
+        this.bytes[23] = (byte)(var1 >> 8);
+        this.bytes[24] = (byte)(var1 >> 16);
+        this.bytes[25] = (byte)(var1 >> 24);
+        this.bytes[26] = 1;
+        this.bytes[28] = 24;
+    }
+
+    private void saveBitmapData(int[][] var1) {
+        for(int var2 = 0; var2 < var1.length; ++var2) {
+            this.writeLine(var2, var1);
+        }
+
+    }
+
+    private void writeLine(int var1, int[][] var2) {
+        int var4 = var2[var1].length;
+
+        for(int var5 = 0; var5 < var4; ++var5) {
+            int var6 = var2[var1][var5];
+            int var7 = 54 + 3 * (var5 + var4 * var1);
+            this.bytes[var7 + 2] = (byte)(var6 >> 16);
+            this.bytes[var7 + 1] = (byte)(var6 >> 8);
+            this.bytes[var7] = (byte)var6;
+        }
+
+    }
+}
