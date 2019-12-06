@@ -1,6 +1,3 @@
-// Source code for application to transmit image from ov7670 to PC via USB
-// http://privateblog.info 
-
 #include <Wire.h>
 #include <SPI.h>
 
